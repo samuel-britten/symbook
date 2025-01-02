@@ -285,6 +285,7 @@ class symbook:
                                 text = st.session_state['expressions'][key]
 
                                 self.G.html += "calculator.setExpression({ id: 'x', latex:" + f"'{text}'" + " });"
+                                self.G.open()
                                 #self.G.html += "calculator.setExpression({ id: 'z', latex:x" #+  f"{latex_code}" + "});"
                     if latex_code is not None:
                         st.code(latex_code, language='latex')
