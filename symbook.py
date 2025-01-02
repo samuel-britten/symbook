@@ -7,6 +7,7 @@ from bokeh.plotting import *
 from spb import *
 import streamlit as st
 from streamlit.components.v1 import html
+import tempfile
 
 st.set_page_config(
     page_title="Symbook",
@@ -108,9 +109,9 @@ class symbook:
             html(open_script)
 
         #st.button('Open link', on_click=open_page, args=('https://streamlit.io',))
-        new = 2 # open in a new tab, if possible
-        url = "http://docs.python.org/library/webbrowser.html"
-        webbrowser.open(url,new=new)
+        #new = 2 # open in a new tab, if possible
+        #url = "http://docs.python.org/library/webbrowser.html"
+        #webbrowser.open(url,new=new)
 
         st.title("Symbook")
         transformations = (standard_transformations + (implicit_multiplication_application, convert_xor))
@@ -302,6 +303,8 @@ class symbook:
                                                       st.session_state.get(f'result_{key}', None))
                     with col6:
                         if st.button('Plot', key=f'plot_{key}'):
+                            temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".html")
+                            
                             #x=symbols('x')
                             #figure = plot(x, show=True)
                             #st.bokeh_chart(figure, use_container_width=False)
@@ -315,7 +318,8 @@ class symbook:
                                 text = st.session_state['expressions'][key]
 
                                 self.G.html += "calculator.setExpression({ id: 'x', latex:" + f"'{text}'" + " });"
-                                open_page(self.G.file_name)
+                                temp_file.write(self.G.html)
+                                open_page(temp_file.name)
                                 #open_page("https://www.desmos.com/api/v1.7/calculator.js?apiKey=dcb31709b452b1cf9dc26972add0fda6")
                                
                     if latex_code is not None:
