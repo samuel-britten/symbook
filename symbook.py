@@ -3,6 +3,8 @@ from sympy import *
 from sympy.parsing.sympy_parser import parse_expr, standard_transformations, implicit_multiplication_application, convert_xor
 from PyDesmos import *
 from sympy import *
+from bokeh.plotting import *
+from spb import *
 
 st.set_page_config(
     page_title="Symbook",
@@ -283,16 +285,20 @@ class symbook:
                                                       st.session_state.get(f'result_{key}', None))
                     with col6:
                         if st.button('Plot', key=f'plot_{key}'):
+                            #x=symbols('x')
+                            #figure = plot(x, show=True)
+                            #st.bokeh_chart(figure, use_container_width=False)
+                            #p = figure(title="simple line example", x_axis_label="x", y_axis_label="y")
+                            #p.line(x, y, legend_label="Trend", line_width=2)
+                            #show(p)
+                            #st.bokeh_chart(p, use_container_width=True)
+                            
                             
                             with self.G:
-                                #latex_code = get_latex_code(st.session_state['expressions'][key], 
-                                #                      st.session_state.get(f'result_{key}', None))
-                                
                                 text = st.session_state['expressions'][key]
 
                                 self.G.html += "calculator.setExpression({ id: 'x', latex:" + f"'{text}'" + " });"
-                                self.G.open()
-                                #self.G.html += "calculator.setExpression({ id: 'z', latex:x" #+  f"{latex_code}" + "});"
+                               
                     if latex_code is not None:
                         st.code(latex_code, language='latex')
                         

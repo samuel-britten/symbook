@@ -1,3 +1,5 @@
 streamlit
 sympy
 PyDesmos
+bokeh
+spb

@@ -1,0 +1,9 @@
+ """
+                                #latex_code = get_latex_code(st.session_state['expressions'][key], 
+                                #                      st.session_state.get(f'result_{key}', None))
+                                
+                                text = st.session_state['expressions'][key]
+
+                                self.G.html += "calculator.setExpression({ id: 'x', latex:" + f"'{text}'" + " });"
+                                self.G.open()
+                                #self.G.html += "calculator.setExpression({ id: 'z', latex:x" #+  f"{latex_code}" + "});" """
