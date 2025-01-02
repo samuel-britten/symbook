@@ -93,7 +93,7 @@ def apply_operation(expr, operation, var=None, val=None):
 
 class symbook:
     def __init__(self):
-        st.write("sym")
+        st.title("Symbook")
         transformations = (standard_transformations + (implicit_multiplication_application, convert_xor))
         self.G = Graph('my graph')
 
@@ -111,7 +111,7 @@ class symbook:
         st.markdown("""
     <style>
         .block-container {
-                    padding-top: 7rem;
+                    padding-top: 2rem;
                     padding-bottom: 0rem;
                     padding-left: 2rem;
                     padding-right: 0rem;
