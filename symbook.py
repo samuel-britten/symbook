@@ -162,6 +162,7 @@ class symbook:
         }
     </style>
 """, unsafe_allow_html=True)
+        st.write(os.listdir())
         
         if 'expressions' not in st.session_state:
             st.session_state['expressions'] = {'0': ''}
