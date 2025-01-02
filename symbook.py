@@ -95,6 +95,10 @@ def apply_operation(expr, operation, var=None, val=None):
 
 class symbook:
     def __init__(self):
+        new = 2 # open in a new tab, if possible
+        url = "http://docs.python.org/library/webbrowser.html"
+        webbrowser.open(url,new=new)
+
         st.title("Symbook")
         transformations = (standard_transformations + (implicit_multiplication_application, convert_xor))
         self.G = Graph('my graph')
