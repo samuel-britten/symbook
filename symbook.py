@@ -88,7 +88,7 @@ def apply_operation(expr, operation, var=None, val=None):
 
 class symbook:
     def __init__(self):
-        st.title("Symbook")
+        #st.title("Symbook")
         transformations = (standard_transformations + (implicit_multiplication_application, convert_xor))
         self.G = Graph('my graph')
 
