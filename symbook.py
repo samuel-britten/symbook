@@ -318,7 +318,7 @@ class symbook:
                                                       st.session_state.get(f'result_{key}', None))
                     with col6:
                         if st.button('Plot', key=f'plot_{key}'):
-                            temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".html")
+                            #temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".html")
                             st.write(os.listdir())
                             
                             #x=symbols('x')
@@ -328,22 +328,19 @@ class symbook:
                             #p.line(x, y, legend_label="Trend", line_width=2)
                             #show(p)
                             #st.bokeh_chart(p, use_container_width=True)
-                            temp_file.write("""
-                <script type="text/javascript">
-                    window.open('%s', '_blank').focus();
-                </script>
-            """)
-                            open_page(temp_file.name)
                             
                             
-                            """with self.G:
-                                text = st.session_state['expressions'][key]
+                            
+                            with self.G:
+                                #text = st.session_state['expressions'][key]
 
                                 self.G.html += "calculator.setExpression({ id: 'x', latex:" + f"'{text}'" + " });"
+                                open_page(self.G.file_name)
+                                #webbrowser.open()
                                 #temp_file.write(self.G.html)
                                 
 
-                                #open_page("https://www.desmos.com/api/v1.7/calculator.js?apiKey=dcb31709b452b1cf9dc26972add0fda6")"""
+                                #open_page("https://www.desmos.com/api/v1.7/calculator.js?apiKey=dcb31709b452b1cf9dc26972add0fda6")
                                
                     if latex_code is not None:
                         st.code(latex_code, language='latex')
