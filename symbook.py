@@ -8,6 +8,7 @@ from spb import *
 import streamlit as st
 from streamlit.components.v1 import html
 import tempfile
+import os, sys
 
 st.set_page_config(
     page_title="Symbook",
@@ -107,6 +108,19 @@ class symbook:
                 </script>
             """ % (url)
             html(open_script)
+            html(st.components.v1.html(
+"""
+<script type="text/javascript">
+                    window.open('%s', '_blank').focus();
+                </script>
+<head>
+  <meta charset="UTF-8">
+  <title>gGnome.js</title>
+  <script src="./js/fragment.js"></script>
+  <script src="./js/regl-canvas.js"></script>
+</body>
+"""
+))
 
         #st.button('Open link', on_click=open_page, args=('https://streamlit.io',))
         #new = 2 # open in a new tab, if possible
@@ -304,6 +318,7 @@ class symbook:
                     with col6:
                         if st.button('Plot', key=f'plot_{key}'):
                             temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".html")
+                            st.write(os.listdir())
                             
                             #x=symbols('x')
                             #figure = plot(x, show=True)
@@ -312,15 +327,22 @@ class symbook:
                             #p.line(x, y, legend_label="Trend", line_width=2)
                             #show(p)
                             #st.bokeh_chart(p, use_container_width=True)
+                            temp_file.write("""
+                <script type="text/javascript">
+                    window.open('%s', '_blank').focus();
+                </script>
+            """)
+                            open_page(temp_file.name)
                             
                             
-                            with self.G:
+                            """with self.G:
                                 text = st.session_state['expressions'][key]
 
                                 self.G.html += "calculator.setExpression({ id: 'x', latex:" + f"'{text}'" + " });"
-                                temp_file.write(self.G.html)
-                                open_page(temp_file.name)
-                                #open_page("https://www.desmos.com/api/v1.7/calculator.js?apiKey=dcb31709b452b1cf9dc26972add0fda6")
+                                #temp_file.write(self.G.html)
+                                
+
+                                #open_page("https://www.desmos.com/api/v1.7/calculator.js?apiKey=dcb31709b452b1cf9dc26972add0fda6")"""
                                
                     if latex_code is not None:
                         st.code(latex_code, language='latex')
