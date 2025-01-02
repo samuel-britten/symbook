@@ -4,6 +4,11 @@ from sympy.parsing.sympy_parser import parse_expr, standard_transformations, imp
 from PyDesmos import *
 from sympy import *
 
+st.set_page_config(
+    page_title="Your App Title",
+    layout="wide"
+)
+
 def add_operator(operator):
     cursor_pos = st.session_state.get('cursor_pos', len(st.session_state['temp_expr']))
     current_expr = st.session_state['temp_expr']
@@ -88,7 +93,7 @@ def apply_operation(expr, operation, var=None, val=None):
 
 class symbook:
     def __init__(self):
-        #st.title("Symbook")
+        
         transformations = (standard_transformations + (implicit_multiplication_application, convert_xor))
         self.G = Graph('my graph')
 
@@ -101,7 +106,7 @@ class symbook:
         self.G.html += "calculator.graphSettings.restrictedFunctions = true;\n"
         self.G.html += "calculator.settings.complex = true;\n"
         self.G.html += "console.log(calculator);"
-        st.set_page_config(layout="wide")
+        
         latex_code = None
         st.markdown("""
     <style>
