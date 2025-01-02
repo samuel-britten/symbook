@@ -315,7 +315,8 @@ class symbook:
                                 text = st.session_state['expressions'][key]
 
                                 self.G.html += "calculator.setExpression({ id: 'x', latex:" + f"'{text}'" + " });"
-                                open_page("https://www.desmos.com/api/v1.7/calculator.js?apiKey=dcb31709b452b1cf9dc26972add0fda6")
+                                open_page(G.html)
+                                #open_page("https://www.desmos.com/api/v1.7/calculator.js?apiKey=dcb31709b452b1cf9dc26972add0fda6")
                                
                     if latex_code is not None:
                         st.code(latex_code, language='latex')
