@@ -107,7 +107,7 @@ class symbook:
             """ % (url)
             html(open_script)
 
-st.button('Open link', on_click=open_page, args=('https://streamlit.io',))
+        st.button('Open link', on_click=open_page, args=('https://streamlit.io',))
         new = 2 # open in a new tab, if possible
         url = "http://docs.python.org/library/webbrowser.html"
         webbrowser.open(url,new=new)
