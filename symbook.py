@@ -1,14 +1,13 @@
 import streamlit as st
 from sympy import *
 from sympy.parsing.sympy_parser import parse_expr, standard_transformations, implicit_multiplication_application, convert_xor
-from PyDesmos import *
 from sympy import *
 from bokeh.plotting import *
 from spb import *
 import streamlit as st
 from streamlit.components.v1 import html
-import tempfile
-import os, sys
+import os
+import plotly.express as px
 
 st.set_page_config(
     page_title="Symbook",
@@ -20,6 +19,16 @@ def add_operator(operator):
     current_expr = st.session_state['temp_expr']
     if operator == '=':
         st.session_state['temp_expr'] = current_expr[:cursor_pos] + '=' + current_expr[cursor_pos:]
+    elif operator == "a":
+        st.session_state['temp_expr'] = current_expr[:cursor_pos] + '\sum_{}^{}' + current_expr[cursor_pos:]
+    elif operator == "b":
+        st.session_state['temp_expr'] = current_expr[:cursor_pos] + '\prod_{}^{}' + current_expr[cursor_pos:]
+    elif operator == "c":
+        st.session_state['temp_expr'] = current_expr[:cursor_pos] + '\int' + current_expr[cursor_pos:]
+    elif operator == "d":
+        st.session_state['temp_expr'] = current_expr[:cursor_pos] + '\int_{}^{}' + current_expr[cursor_pos:]
+    elif operator == "e":
+        st.session_state['temp_expr'] = current_expr[:cursor_pos] + '\lim_{ \\to }' + current_expr[cursor_pos:]
     else:
         st.session_state['temp_expr'] = current_expr[:cursor_pos] + operator + current_expr[cursor_pos:]
 
@@ -99,47 +108,15 @@ def apply_operation(expr, operation, var=None, val=None):
 
 class symbook:
     def __init__(self):
-        
+        fig = px.line(x=[1, 2, 3, 4], y=[1, 4, 9, 16])
+        fig.update_layout(dragmode='zoom')
 
-        def open_page(url):
-            open_script= """
-                <script type="text/javascript">
-                    window.open('%s', '_blank').focus();
-                </script>
-            """ % (url)
-            html(open_script)
-            html(st.components.v1.html(
-"""
-<script type="text/javascript">
-                    window.open('%s', '_blank').focus();
-                </script>
-<head>
-  <meta charset="UTF-8">
-  <title>gGnome.js</title>
-  <script src="./js/fragment.js"></script>
-  <script src="./js/regl-canvas.js"></script>
-</body>
-"""
-))
-
-        #st.button('Open link', on_click=open_page, args=('https://streamlit.io',))
-        #new = 2 # open in a new tab, if possible
-        #url = "http://docs.python.org/library/webbrowser.html"
-        #webbrowser.open(url,new=new)
-
+        st.plotly_chart(fig, on_select = 'ignore', selection_mode = 'points')
         st.title("Symbook")
         transformations = (standard_transformations + (implicit_multiplication_application, convert_xor))
-        self.G = Graph('my graph')
+     
 
         self.expr_count = 0
-
-        self.G.html = self.G.html.replace("src=\"https://www.desmos.com/api/v1.7/calculator.js?apiKey=dcb31709b452b1cf9dc26972add0fda6\"></script>", "src=\"https://www.desmos.com/api/v1.11/calculator.js?apiKey=dcb31709b452b1cf9dc26972add0fda6\"></script>") #+ r"\ncalculator.updateSettings({allowComplex: true})"
-        self.G.html += "calculator.updateSettings({allowComplex: true, invertedColors: true});\n"
-        self.G.html += "var state = calculator.getState();\n"
-        self.G.html += "calculator.graphSettings.complex = true;\n"
-        self.G.html += "calculator.graphSettings.restrictedFunctions = true;\n"
-        self.G.html += "calculator.settings.complex = true;\n"
-        self.G.html += "console.log(calculator);"
         
         latex_code = None
         st.markdown("""
@@ -162,7 +139,6 @@ class symbook:
         }
     </style>
 """, unsafe_allow_html=True)
-        st.write(os.listdir())
         
         if 'expressions' not in st.session_state:
             st.session_state['expressions'] = {'0': ''}
@@ -239,24 +215,39 @@ class symbook:
                         st.rerun()
                 
                 if st.session_state['keyboard_visible']:
-                    keyboard_container = st.container()
-                    with keyboard_container:
+                    #keyboard_container = st.container()
+                    #with keyboard_container:
                         st.write("")
-                        col1, col2, col3, col4, col5, col6 = st.columns([0.1, 0.1, 0.1, 0.1, 0.1, 0.5])
+                        col1, col2, col3, col4, col5, col6, col7, col8, col9, col10 = st.columns([1, 1, .93, .9, .9, .9, .9, .9, .9, .9, 15])[:-1]
                         with col1:
-                            if st.button('＋', key='add', on_click=add_operator, args=('+')):
+                            if st.button('$＋$', key='add', on_click=add_operator, args=('+')):
                                 st.rerun()
                         with col2:
-                            if st.button('－', key='subtract', on_click=add_operator, args=('-')):
+                            if st.button('$－$', key='subtract', on_click=add_operator, args=('-')):
                                 st.rerun()
                         with col3:
-                            if st.button('×', key='multiply', on_click=add_operator, args=('*')):
+                            if st.button('$\\times$', key='multiply', on_click=add_operator, args=('*')):
                                 st.rerun()
                         with col4:
-                            if st.button('÷', key='divide', on_click=add_operator, args=('/')):
+                            if st.button('$\div$', key='divide', on_click=add_operator, args=('/')):
                                 st.rerun()
                         with col5:
-                            if st.button('＝', key='equals', on_click=add_operator, args=('=')):
+                            if st.button('$＝$', key='equals', on_click=add_operator, args=('=')):
+                                st.rerun()
+                        with col6:
+                            if st.button('$\sum$', key='sum', on_click=add_operator, args=('a')):
+                                st.rerun()
+                        with col7:
+                            if st.button('$\prod$', key='product', on_click=add_operator, args=('b')):
+                                st.rerun()
+                        with col8:
+                            if st.button('$\int$', key='integral', on_click=add_operator, args=('c')):
+                                st.rerun()
+                        with col9:
+                            if st.button('$\int_a^b$', key='definite_integral', on_click=add_operator, args=('d')):
+                                st.rerun()
+                        with col10:
+                            if st.button('$\\lim_{\\to}$', key='limit', on_click=add_operator, args=('e')):
                                 st.rerun()
             else:
                 try:
@@ -318,29 +309,7 @@ class symbook:
                                                       st.session_state.get(f'result_{key}', None))
                     with col6:
                         if st.button('Plot', key=f'plot_{key}'):
-                            #temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".html")
-                            st.write(os.listdir())
-                            
-                            #x=symbols('x')
-                            #figure = plot(x, show=True)
-                            #st.bokeh_chart(figure, use_container_width=False)
-                            #p = figure(title="simple line example", x_axis_label="x", y_axis_label="y")
-                            #p.line(x, y, legend_label="Trend", line_width=2)
-                            #show(p)
-                            #st.bokeh_chart(p, use_container_width=True)
-                            
-                            
-                            
-                            with self.G:
-                                #text = st.session_state['expressions'][key]
-
-                                self.G.html += "calculator.setExpression({ id: 'x', latex:" + f"'{text}'" + " });"
-                                open_page(self.G.file_name)
-                                #webbrowser.open()
-                                #temp_file.write(self.G.html)
-                                
-
-                                #open_page("https://www.desmos.com/api/v1.7/calculator.js?apiKey=dcb31709b452b1cf9dc26972add0fda6")
+                           ph=0
                                
                     if latex_code is not None:
                         st.code(latex_code, language='latex')
