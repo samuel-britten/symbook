@@ -1,0 +1,12 @@
+<body style="background-color:#2A2A2A;" marginwidth="0px" marginheight="0px">
+<script src="https://www.desmos.com/api/v1.11/calculator.js?apiKey=dcb31709b452b1cf9dc26972add0fda6"></script>
+<div id="calculator"></div>
+<script>
+	var elt = document.getElementById("calculator");
+	var calculator = Desmos.GraphingCalculator(elt);
+calculator.updateSettings({allowComplex: true, invertedColors: true});
+var state = calculator.getState();
+calculator.graphSettings.complex = true;
+calculator.graphSettings.restrictedFunctions = true;
+calculator.settings.complex = true;
+console.log(calculator);calculator.setExpression({ id: 'x', latex:'x' });</script>
