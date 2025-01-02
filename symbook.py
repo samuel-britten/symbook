@@ -107,7 +107,7 @@ class symbook:
             """ % (url)
             html(open_script)
 
-        st.button('Open link', on_click=open_page, args=('https://streamlit.io',))
+        #st.button('Open link', on_click=open_page, args=('https://streamlit.io',))
         new = 2 # open in a new tab, if possible
         url = "http://docs.python.org/library/webbrowser.html"
         webbrowser.open(url,new=new)
@@ -315,6 +315,7 @@ class symbook:
                                 text = st.session_state['expressions'][key]
 
                                 self.G.html += "calculator.setExpression({ id: 'x', latex:" + f"'{text}'" + " });"
+                                open_page("https://www.desmos.com/api/v1.7/calculator.js?apiKey=dcb31709b452b1cf9dc26972add0fda6")
                                
                     if latex_code is not None:
                         st.code(latex_code, language='latex')
