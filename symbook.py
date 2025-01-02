@@ -4,10 +4,10 @@ from sympy.parsing.sympy_parser import parse_expr, standard_transformations, imp
 from PyDesmos import *
 from sympy import *
 
-#st.set_page_config(
-#    page_title="Symbook",
-#    layout="wide"
-#)
+st.set_page_config(
+    page_title="Symbook",
+    layout="wide"
+)
 
 def add_operator(operator):
     cursor_pos = st.session_state.get('cursor_pos', len(st.session_state['temp_expr']))
