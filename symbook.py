@@ -93,7 +93,7 @@ def apply_operation(expr, operation, var=None, val=None):
 
 class symbook:
     def __init__(self):
-        
+        st.write("sym")
         transformations = (standard_transformations + (implicit_multiplication_application, convert_xor))
         self.G = Graph('my graph')
 
