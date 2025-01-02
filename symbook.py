@@ -111,7 +111,7 @@ class symbook:
         st.markdown("""
     <style>
         .block-container {
-                    padding-top: 3rem;
+                    padding-top: 7rem;
                     padding-bottom: 0rem;
                     padding-left: 2rem;
                     padding-right: 0rem;
