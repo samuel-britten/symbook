@@ -5,6 +5,8 @@ from PyDesmos import *
 from sympy import *
 from bokeh.plotting import *
 from spb import *
+import streamlit as st
+from streamlit.components.v1 import html
 
 st.set_page_config(
     page_title="Symbook",
@@ -95,6 +97,17 @@ def apply_operation(expr, operation, var=None, val=None):
 
 class symbook:
     def __init__(self):
+        
+
+        def open_page(url):
+            open_script= """
+                <script type="text/javascript">
+                    window.open('%s', '_blank').focus();
+                </script>
+            """ % (url)
+            html(open_script)
+
+st.button('Open link', on_click=open_page, args=('https://streamlit.io',))
         new = 2 # open in a new tab, if possible
         url = "http://docs.python.org/library/webbrowser.html"
         webbrowser.open(url,new=new)
