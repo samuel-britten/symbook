@@ -6,7 +6,32 @@ from spb import *
 import streamlit as st
 from streamlit.components.v1 import html
 import os
-import plotly.express as px
+import streamlit.components.v1 as components
+
+def process_latex(expr):
+    """Convert LaTeX expressions to JavaScript math"""
+    # Handle expressions with curly braces in exponents
+    while '{' in expr and '}' in expr:
+        start = expr.find('^{')
+        if start != -1:
+            # Find matching closing brace
+            count = 1
+            end = start + 2
+            while count > 0 and end < len(expr):
+                if expr[end] == '{':
+                    count += 1
+                elif expr[end] == '}':
+                    count -= 1
+                end += 1
+            
+            if count == 0:
+                # Replace ^{...} with ^(...)
+                power = expr[start+2:end-1]
+                expr = expr[:start] + '^(' + power + ')' + expr[end:]
+        else:
+            break
+    
+    return expr
 
 st.set_page_config(
     page_title="Symbook",
@@ -105,13 +130,266 @@ def apply_operation(expr, operation, var=None, val=None):
                 return "Invalid substitution"
     return sym_expr
 
+def show_graph(exprs):
+    try:
+        primary_color = st.get_option("theme.primaryColor")
+        background_color = st.get_option("theme.backgroundColor")
+        secondary_background_color = st.get_option("theme.secondaryBackgroundColor")
+        text_color = st.get_option("theme.textColor")
+    except:
+        primary_color = "#FF4B4B"
+        background_color = "#FFFFFF"
+        secondary_background_color = "#F0F2F6"
+        text_color = "#262730"
+    
+    # Convert list of expressions to JavaScript array with proper quotes
+    js_functions = "[" + ",".join([f"'{expr}'" for expr in exprs]) + "]"
+    
+    html_code = f"""
+    <div style="background-color: {background_color};">
+        <canvas id="graphCanvas" width="800" height="600" style="border:1px solid {text_color}; cursor: move;"></canvas>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('graphCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        canvas.style.width = '100%';
+        canvas.style.height = '100%';
+        canvas.width = canvas.offsetWidth;
+        canvas.height = canvas.offsetHeight;
+        
+        const width = canvas.width;
+        const height = canvas.height;
+        let scale = 40;
+        const minScale = 10;
+        const maxScale = 200;
+        
+        let offsetX = 0;
+        let offsetY = 0;
+        let isDragging = false;
+        let startX, startY;
+
+        const functions = {js_functions};
+        
+        function drawGrid() {{
+            ctx.strokeStyle = '{secondary_background_color}';
+            ctx.lineWidth = 1;
+            
+            const xLines = Math.ceil(width / (2 * scale));
+            const yLines = Math.ceil(height / (2 * scale));
+            
+            for(let x = -xLines; x <= xLines; x++) {{
+                const xPos = x * scale;
+                ctx.beginPath();
+                ctx.moveTo(xPos, -height/2);
+                ctx.lineTo(xPos, height/2);
+                ctx.stroke();
+                
+                ctx.save();
+                ctx.scale(1, -1);
+                ctx.fillStyle = '{text_color}';
+                ctx.font = '10px Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'top';
+                if (Math.abs(x) > 0.1) {{
+                    const label = Number(x).toFixed(1).replace(/\.0$/, '');
+                    ctx.fillText(label, xPos, 5);
+                }}
+                ctx.restore();
+            }}
+            
+            for(let y = -yLines; y <= yLines; y++) {{
+                const yPos = y * scale;
+                ctx.beginPath();
+                ctx.moveTo(-width/2, yPos);
+                ctx.lineTo(width/2, yPos);
+                ctx.stroke();
+                
+                ctx.save();
+                ctx.scale(1, -1);
+                ctx.fillStyle = '{text_color}';
+                ctx.font = '10px Arial';
+                ctx.textAlign = 'right';
+                ctx.textBaseline = 'middle';
+                if (Math.abs(y) > 0.1) {{
+                    const label = Number(y).toFixed(1).replace(/\.0$/, '');
+                    ctx.fillText(label, -5, -yPos);
+                }}
+                ctx.restore();
+            }}
+        }}
+        
+        function drawAxes() {{
+            ctx.strokeStyle = '{text_color}';
+            ctx.lineWidth = 2;
+            
+            ctx.beginPath();
+            ctx.moveTo(-width/2, 0);
+            ctx.lineTo(width/2, 0);
+            ctx.stroke();
+            
+            ctx.beginPath();
+            ctx.moveTo(0, -height/2);
+            ctx.lineTo(0, height/2);
+            ctx.stroke();
+        }}
+        
+        function plotFunction() {{
+    let colors = ['{primary_color}', '#FF8C00', '#9370DB', '#20B2AA', '#CD5C5C'];
+    functions.forEach((func, index) => {{
+        ctx.strokeStyle = colors[index % colors.length];
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        
+        const xStart = (-width/2 - offsetX) / scale;
+        const xEnd = (width/2 - offsetX) / scale;
+        const step = (xEnd - xStart) / 1000;
+        
+        let isFirst = true;
+        
+        for(let x = xStart; x <= xEnd; x += step) {{
+            try {{
+                // Create a proper mathematical context for evaluation
+                const mathContext = {{
+                    x: x,
+                    sin: Math.sin,
+                    cos: Math.cos,
+                    tan: Math.tan,
+                    sqrt: Math.sqrt,
+                    abs: Math.abs,
+                    pow: Math.pow
+                }};
+                
+                // Use Function constructor to create a safe evaluation context
+                const calculate = new Function('x', 
+                    'return ' + func.replace(/Math\./g, '')
+                                   .replace(/\^/g, '**'));
+                
+                const y = calculate(x);
+                
+                if (isNaN(y) || !isFinite(y)) continue;
+                
+                const px = x * scale;
+                const py = y * scale;
+                
+                if (Math.abs(py) > height * 2) continue;
+                
+                if (isFirst) {{
+                    ctx.moveTo(px, py);
+                    isFirst = false;
+                }} else {{
+                    ctx.lineTo(px, py);
+                }}
+            }} catch (e) {{
+                continue;
+            }}
+        }}
+        ctx.stroke();
+    }});
+}}
+        
+        function redraw() {{
+            ctx.save();
+            ctx.setTransform(1, 0, 0, 1, 0, 0);
+            ctx.clearRect(0, 0, width, height);
+            ctx.restore();
+            
+            ctx.save();
+            ctx.translate(width/2 + offsetX, height/2 + offsetY);
+            ctx.scale(1, -1);
+            
+            drawGrid();
+            drawAxes();
+            plotFunction();
+            
+            ctx.restore();
+        }}
+
+        canvas.addEventListener('mousedown', function(e) {{
+            isDragging = true;
+            const rect = canvas.getBoundingClientRect();
+            startX = e.clientX - offsetX;
+            startY = e.clientY - offsetY;
+            canvas.style.cursor = 'grabbing';
+        }});
+
+        canvas.addEventListener('mousemove', function(e) {{
+            if (isDragging) {{
+                offsetX = e.clientX - startX;
+                offsetY = e.clientY - startY;
+                redraw();
+            }}
+        }});
+
+        canvas.addEventListener('mouseup', function() {{
+            isDragging = false;
+            canvas.style.cursor = 'move';
+        }});
+
+        canvas.addEventListener('mouseleave', function() {{
+            isDragging = false;
+            canvas.style.cursor = 'move';
+        }});
+
+        canvas.addEventListener('wheel', function(event) {{
+            event.preventDefault();
+            
+            const rect = canvas.getBoundingClientRect();
+            const mouseX = event.clientX - rect.left - width/2 - offsetX;
+            const mouseY = -(event.clientY - rect.top - height/2) + offsetY;
+            
+            const zoomIntensity = 0.1;
+            const wheel = event.deltaY < 0 ? 1 : -1;
+            const zoom = Math.exp(wheel * zoomIntensity);
+            
+            const newScale = scale * zoom;
+            
+            if (newScale >= minScale && newScale <= maxScale) {{
+                scale = newScale;
+                redraw();
+            }}
+        }}, {{ passive: false }});
+
+        window.addEventListener('resize', function() {{
+            canvas.width = canvas.offsetWidth;
+            canvas.height = canvas.offsetHeight;
+            redraw();
+        }});
+        
+        redraw();
+    </script>
+    """
+    components.html(html_code, height=650)
+
 class symbook:
     def __init__(self):
-        fig = px.line(x=[1, 2, 3, 4], y=[1, 4, 9, 16])
-        fig.update_layout(dragmode='zoom')
-
-        st.plotly_chart(fig, on_select = 'ignore', selection_mode = 'points')
-        st.title("Symbook")
+        title = st.title("Symbook")
+    
+        
+        def get_js_expr(expr):
+            function_input = expr
+            
+            
+            function_input = (function_input.replace("y=", "").strip())
+            function_input = process_latex(function_input)
+            
+            
+            function_input = (function_input
+                            .replace("sin", "Math.sin")
+                            .replace("cos", "Math.cos")
+                            .replace("tan", "Math.tan")
+                            .replace("sqrt", "Math.sqrt")
+                            .replace("log", "Math.log")
+                            .replace("e", "Math.E")
+                            .replace("pi", "Math.PI")
+                            .replace("^", "**"))
+            return function_input
+        
+        
+        
+        #components.html(html_code, height=450)
+        
         transformations = (standard_transformations + (implicit_multiplication_application, convert_xor))
      
 
@@ -259,6 +537,7 @@ class symbook:
                     else:
                         sym_expr = parse_expr(st.session_state['expressions'][key], transformations=transformations)
                     col1, col2, col3, col4, col5, col6 = st.columns([0.3, 0.3, 0.1, 0.1, 0.1, 0.2])
+                    
                     with col1:
                         st.latex(latex(sym_expr))
                     with col2:
@@ -308,8 +587,14 @@ class symbook:
                                                       st.session_state.get(f'result_{key}', None))
                     with col6:
                         if st.button('Plot', key=f'plot_{key}'):
-                           ph=0
-                               
+                            expr = get_js_expr(get_latex_code(st.session_state['expressions'][key], 
+                                             st.session_state.get(f'result_{key}', None))[1:-1])
+                            if 'plot_exprs' not in st.session_state:
+                                st.session_state['plot_exprs'] = []
+                            if expr not in st.session_state['plot_exprs']:
+                                st.session_state['plot_exprs'].append(expr)
+                            st.rerun()
+
                     if latex_code is not None:
                         st.code(latex_code, language='latex')
                         
@@ -317,6 +602,10 @@ class symbook:
                     st.write("Invalid expression")
                     st.session_state['edit_states'][key] = True
                     st.rerun()
+
+            if 'plot_exprs' in st.session_state and st.session_state['plot_exprs']:
+                st.divider()
+                show_graph(st.session_state['plot_exprs'])
 
         with expr_column[1]:
             if st.button('➕ Add Expression'):
@@ -326,4 +615,7 @@ class symbook:
                 st.session_state['current_expr'] = new_idx
                 st.session_state['temp_expr'] = ''
                 st.rerun()
+        
+        
+        
 symbook()
