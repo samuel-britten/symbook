@@ -7,6 +7,7 @@ import streamlit as st
 from streamlit.components.v1 import html
 import os
 import streamlit.components.v1 as components
+#init_session()
 
 def process_latex(expr):
     """Convert LaTeX expressions to JavaScript math"""
@@ -142,7 +143,6 @@ def show_graph(exprs):
         secondary_background_color = "#F0F2F6"
         text_color = "#262730"
     
-    # Convert list of expressions to JavaScript array with proper quotes
     js_functions = "[" + ",".join([f"'{expr}'" for expr in exprs]) + "]"
     
     html_code = f"""
@@ -176,11 +176,11 @@ def show_graph(exprs):
             ctx.strokeStyle = '{secondary_background_color}';
             ctx.lineWidth = 1;
             
-            const xLines = Math.ceil(width / (2 * scale));
-            const yLines = Math.ceil(height / (2 * scale));
+            const xLines = Math.ceil(width / scale);
+            const yLines = Math.ceil(height / scale);
             
             for(let x = -xLines; x <= xLines; x++) {{
-                const xPos = x * scale;
+                const xPos = x * scale + offsetX % scale;
                 ctx.beginPath();
                 ctx.moveTo(xPos, -height/2);
                 ctx.lineTo(xPos, height/2);
@@ -193,14 +193,14 @@ def show_graph(exprs):
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'top';
                 if (Math.abs(x) > 0.1) {{
-                    const label = Number(x).toFixed(1).replace(/\.0$/, '');
+                    const label = (x * scale / 40).toFixed(2).replace(/\.00$/, '');
                     ctx.fillText(label, xPos, 5);
                 }}
                 ctx.restore();
             }}
             
             for(let y = -yLines; y <= yLines; y++) {{
-                const yPos = y * scale;
+                const yPos = y * scale + offsetY % scale;
                 ctx.beginPath();
                 ctx.moveTo(-width/2, yPos);
                 ctx.lineTo(width/2, yPos);
@@ -213,7 +213,7 @@ def show_graph(exprs):
                 ctx.textAlign = 'right';
                 ctx.textBaseline = 'middle';
                 if (Math.abs(y) > 0.1) {{
-                    const label = Number(y).toFixed(1).replace(/\.0$/, '');
+                    const label = (y * scale / 40).toFixed(2).replace(/\.00$/, '');
                     ctx.fillText(label, -5, -yPos);
                 }}
                 ctx.restore();
@@ -236,58 +236,45 @@ def show_graph(exprs):
         }}
         
         function plotFunction() {{
-    let colors = ['{primary_color}', '#FF8C00', '#9370DB', '#20B2AA', '#CD5C5C'];
-    functions.forEach((func, index) => {{
-        ctx.strokeStyle = colors[index % colors.length];
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        
-        const xStart = (-width/2 - offsetX) / scale;
-        const xEnd = (width/2 - offsetX) / scale;
-        const step = (xEnd - xStart) / 1000;
-        
-        let isFirst = true;
-        
-        for(let x = xStart; x <= xEnd; x += step) {{
-            try {{
-                // Create a proper mathematical context for evaluation
-                const mathContext = {{
-                    x: x,
-                    sin: Math.sin,
-                    cos: Math.cos,
-                    tan: Math.tan,
-                    sqrt: Math.sqrt,
-                    abs: Math.abs,
-                    pow: Math.pow
-                }};
+            let colors = ['{primary_color}', '#FF8C00', '#9370DB', '#20B2AA', '#CD5C5C'];
+            functions.forEach((func, index) => {{
+                ctx.strokeStyle = colors[index % colors.length];
+                ctx.lineWidth = 2;
+                ctx.beginPath();
                 
-                // Use Function constructor to create a safe evaluation context
-                const calculate = new Function('x', 
-                    'return ' + func.replace(/Math\./g, '')
-                                   .replace(/\^/g, '**'));
+                const xStart = (-width/2 - offsetX) / scale;
+                const xEnd = (width/2 - offsetX) / scale;
+                const step = (xEnd - xStart) / 1000;
                 
-                const y = calculate(x);
+                let isFirst = true;
                 
-                if (isNaN(y) || !isFinite(y)) continue;
-                
-                const px = x * scale;
-                const py = y * scale;
-                
-                if (Math.abs(py) > height * 2) continue;
-                
-                if (isFirst) {{
-                    ctx.moveTo(px, py);
-                    isFirst = false;
-                }} else {{
-                    ctx.lineTo(px, py);
+                for(let x = xStart; x <= xEnd; x += step) {{
+                    try {{
+                        let expression = func
+                        
+                        
+                        const y = eval(expression);
+                        
+                        if (isNaN(y) || !isFinite(y)) continue;
+                        
+                        const px = x * scale;
+                        const py = y * scale;
+                        
+                        if (Math.abs(py) > height * 2) continue;
+                        
+                        if (isFirst) {{
+                            ctx.moveTo(px, py);
+                            isFirst = false;
+                        }} else {{
+                            ctx.lineTo(px, py);
+                        }}
+                    }} catch (e) {{
+                        continue;
+                    }}
                 }}
-            }} catch (e) {{
-                continue;
-            }}
+                ctx.stroke();
+            }});
         }}
-        ctx.stroke();
-    }});
-}}
         
         function redraw() {{
             ctx.save();
@@ -375,7 +362,14 @@ class symbook:
             function_input = process_latex(function_input)
             
             
+            
             function_input = (function_input
+                            .replace("\left(", "")
+                            .replace("\\right)", "")
+                            .replace("{", "(")
+                            .replace("}", ")")
+                            .replace("\\", "")
+                            .replace(" ", "")
                             .replace("sin", "Math.sin")
                             .replace("cos", "Math.cos")
                             .replace("tan", "Math.tan")
@@ -492,9 +486,7 @@ class symbook:
                         st.rerun()
                 
                 if st.session_state['keyboard_visible']:
-                    #keyboard_container = st.container()
-                    #with keyboard_container:
-                        st.write("")
+                    
                         col1, col2, col3, col4, col5, col6, col7, col8, col9, col10 = st.columns([1, 1, .93, .9, .9, .9, .9, .9, .9, .9, 15])[:-1]
                         with col1:
                             if st.button('$＋$', key='add', on_click=add_operator, args=('+')):
