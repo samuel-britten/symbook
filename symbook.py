@@ -146,8 +146,8 @@ def show_graph(exprs):
     js_functions = "[" + ",".join([f"'{expr}'" for expr in exprs]) + "]"
     
     html_code = f"""
-    <div style="background-color: {background_color};">
-        <canvas id="graphCanvas" width="800" height="600" style="border:1px solid {text_color}; cursor: move;"></canvas>
+    <div style="background-color: {background_color}; padding-bottom: 2rem;">
+        <canvas id="graphCanvas" width="800" height="800" style="border:1px solid {text_color}; cursor: move;"></canvas>
     </div>
 
     <script>
@@ -347,7 +347,7 @@ def show_graph(exprs):
         redraw();
     </script>
     """
-    components.html(html_code, height=650)
+    components.html(html_code, height=800)
 
 class symbook:
     def __init__(self):
@@ -393,18 +393,21 @@ class symbook:
         st.markdown("""
     <style>
         .block-container {
-                    padding-top: 2rem;
-                    padding-bottom: 0rem;
-                    padding-left: 2rem;
-                    padding-right: 0rem;
-        
+            padding-top: 2rem;
+            padding-bottom: 20rem; /* Significantly increase bottom padding */
+            padding-left: 2rem;
+            padding-right: 0rem; /* Increase right padding */
+            max-height: none; /* Remove max height restriction */
+            overflow-y: auto; /* Enable vertical scrolling */
+        }
+
         div[data-testid="stCodeBlock"] {
             max-width: none !important;
             width: 100% !important;
             white-space: pre-wrap !important;
             overflow-x: visible !important;
         }
-        
+
         [data-testid="column"] [data-testid="stVerticalBlock"] {
             gap: 0rem;
         }
