@@ -147,7 +147,7 @@ def show_graph(exprs):
     
     html_code = f"""
     <div style="background-color: {background_color};">
-        <canvas id="graphCanvas" width="800" height="800" style="border:1px solid {text_color}; cursor: move;"></canvas>
+        <canvas id="graphCanvas" width="800" height="600" style="border:1px solid {text_color}; cursor: move;"></canvas>
     </div>
 
     <script>
