@@ -1,1 +1,2 @@
 .venv\Scripts\activate
+streamlit run symbook.py
