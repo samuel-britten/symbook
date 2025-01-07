@@ -1,6 +1,6 @@
 from imports import get_base64_image, process_latex, get_latex_code, show_graph, apply_operation, get_variables, add_operator, submit_expression
 from imports import *
-a=0
+test=0
 class symbook:
     def __init__(self):
         st.set_page_config(
