@@ -1,6 +1,7 @@
 from imports import get_base64_image, process_latex, get_latex_code, show_graph, apply_operation, get_variables, add_operator, submit_expression
 from imports import *
-test=0
+from pylatexenc.latex2text import LatexNodes2Text
+from sympy import printing
 class symbook:
     def __init__(self):
         st.set_page_config(
@@ -9,10 +10,30 @@ class symbook:
             layout="wide"
         )
 
-      
-        
         self.icon_base64 = get_base64_image("icon_lowqual.png")
         self.title_base64 = get_base64_image("title2.png")
+        init_printing(use_latex=True)
+        x = symbols('x')
+        text_expr = (x+2+3*x)
+        pprint(latex(text_expr))
+        print(LatexNodes2Text().latex_to_text(latex(text_expr)))
+        pprint(text_expr)
+
+        
+        if "tabs" not in st.session_state:
+            st.session_state["tabs"] = [printing.pretty(text_expr)]
+        header_column = st.columns([0.1, 0.9], gap='small')
+        with header_column[0]:
+            components.html(f'<img src="data:image/png;base64,{self.icon_base64}" alt="Icon" width="55" style="margin-top:0px; top:100px; padding-top:0px">')
+        with header_column[1]:
+            tabs = st.tabs(st.session_state["tabs"])
+        with tabs[0]:
+            st.write("12345")
+            st.latex("x")
+
+      
+        
+        
         
           
         def get_js_expr(expr):
@@ -54,7 +75,8 @@ class symbook:
         st.markdown("""
         <style>
             .block-container {
-                padding-top: 2.8rem;
+                //padding-top: 3.15rem;
+                padding-top: 10rem;
                 padding-bottom: 20rem; /* Significantly increase bottom padding */
                 padding-left: 2rem;
                 padding-right: 2rem; /* Increase right padding */
@@ -279,6 +301,8 @@ class symbook:
             with expr_column[2]:
                 if st.button('➕ Add Expression'):
                     new_idx = str(len(st.session_state['expressions']))
+                    new_tab = st.text_input("Tab label", "New Tab")
+                    st.session_state["tabs"].append(new_tab)
                     st.session_state['expressions'][new_idx] = ''
                     st.session_state['edit_states'][new_idx] = True
                     st.session_state['current_expr'] = new_idx
