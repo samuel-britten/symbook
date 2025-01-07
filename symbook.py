@@ -7,12 +7,13 @@ class symbook:
             page_icon = "icon_lowqual.png",
             layout="wide"
         )
-        icon_base64 = get_base64_image("icon_lowqual.png")
+
+      
         
-        components.html(f'<img src="data:image/png;base64,{icon_base64}" alt="Icon" width="60" style="margin-top:6px">')       
+        self.icon_base64 = get_base64_image("icon_lowqual.png")
+        self.title_base64 = get_base64_image("title2.png")
         
-    
-        
+          
         def get_js_expr(expr):
             function_input = expr
             
@@ -50,28 +51,33 @@ class symbook:
         
         latex_code = None
         st.markdown("""
-    <style>
-        .block-container {
-            padding-top: 2.8rem;
-            padding-bottom: 20rem; /* Significantly increase bottom padding */
-            padding-left: 2rem;
-            padding-right: 0rem; /* Increase right padding */
-            max-height: none; /* Remove max height restriction */
-            overflow-y: auto; /* Enable vertical scrolling */
-        }
+        <style>
+            .block-container {
+                padding-top: 2.8rem;
+                padding-bottom: 20rem; /* Significantly increase bottom padding */
+                padding-left: 2rem;
+                padding-right: 2rem; /* Increase right padding */
+                max-height: none; /* Remove max height restriction */
+                overflow-y: auto; /* Enable vertical scrolling */
+            }
 
-        div[data-testid="stCodeBlock"] {
-            max-width: none !important;
-            width: 100% !important;
-            white-space: pre-wrap !important;
-            overflow-x: visible !important;
-        }
+            div[data-testid="stCodeBlock"] {
+                max-width: none !important;
+                width: 100% !important;
+                white-space: pre-wrap !important;
+                overflow-x: visible !important;
+            }
 
-        [data-testid="column"] [data-testid="stVerticalBlock"] {
-            gap: 0rem;
-        }
-    </style>
-""", unsafe_allow_html=True)
+            [data-testid="column"] [data-testid="stVerticalBlock"] {
+                gap: 0rem;
+            }
+        </style>
+        """, unsafe_allow_html=True)
+
+        main = st.container()
+        bottom = st.container()
+        if 'plot_exprs' not in st.session_state:
+            st.session_state['plot_exprs'] = []
         
         if 'expressions' not in st.session_state:
             st.session_state['expressions'] = {'0': ''}
@@ -83,45 +89,52 @@ class symbook:
             st.session_state['keyboard_visible'] = False
         if 'temp_expr' not in st.session_state:
             st.session_state['temp_expr'] = ''
-            
-        expr_column = st.columns([0.7, 0.3], gap='small')
         
-        with expr_column[0]:
-            num_expressions = len(st.session_state['expressions'])
-            total_width = 0.2 * num_expressions
-            remaining_width = 1 - total_width
-            col_widths = [0.2] * num_expressions + [remaining_width] if remaining_width > 0 else [1/num_expressions] * num_expressions
-            cols = st.columns(col_widths)
+        with main:
+            expr_column = st.columns([.1, 0.7, 0.3], gap='small')
             
-            for idx, (key, expr) in enumerate(st.session_state['expressions'].items()):
-                with cols[idx]:
-                    if expr.strip():
-                        try:
-                            transformations = (standard_transformations + (implicit_multiplication_application, convert_xor))
-                            if '=' in expr:
-                                left, right = expr.split('=')
-                                left_expr = parse_expr(left, transformations=transformations)
-                                right_expr = parse_expr(right, transformations=transformations)
-                                sym_expr = Eq(left_expr, right_expr)
-                            else:
-                                sym_expr = parse_expr(expr, transformations=transformations)
-                            button_label = f'${latex(sym_expr)}$'
-                        except:
-                            button_label = f'Expr {int(key) + 1}'
-                    else:
-                        button_label = f'Expr {int(key) + 1}'
-                    
-                    if st.button(
-                        button_label,
-                        key=f'nav_{key}',
-                        type='primary' if key == st.session_state['current_expr'] else 'secondary'
-                    ):
-                        st.session_state['current_expr'] = key
-                        st.rerun()
+            with expr_column[0]:
+                components.html(f'<img src="data:image/png;base64,{self.icon_base64}" alt="Icon" width="80" style="margin-top:0px; top:100px; padding-top:0px">')       
+            
+            with expr_column[1]:
+                num_expressions = len(st.session_state['expressions'])
+                total_width = 0.2 * num_expressions
+                remaining_width = 1 - total_width
+                col_widths = [0.2] * num_expressions + [remaining_width] if remaining_width > 0 else [1/num_expressions] * num_expressions
+                for i in range(6):
+                    col_widths.append(.07)
+                cols = st.columns(col_widths)
+                
+                for idx, (key, expr) in enumerate(st.session_state['expressions'].items()):
+                    with cols[idx]:
+                        if expr.strip():
+                            try:
+                                transformations = (standard_transformations + (implicit_multiplication_application, convert_xor))
+                                if '=' in expr:
+                                    left, right = expr.split('=')
+                                    left_expr = parse_expr(left, transformations=transformations)
+                                    right_expr = parse_expr(right, transformations=transformations)
+                                    sym_expr = Eq(left_expr, right_expr)
+                                else:
+                                    sym_expr = parse_expr(expr, transformations=transformations)
+                                button_label = f'${latex(sym_expr)}$'
+                            except:
+                                button_label = f'Expression {int(key) + 1}'
+                        else:
+                            button_label = f'Expression {int(key) + 1}'
+                        
+                        if st.button(
+                            button_label,
+                            key=f'nav_{key}',
+                            type='primary' if key == st.session_state['current_expr'] else 'secondary'
+                        ):
+                            st.session_state['current_expr'] = key
+                            st.rerun()
 
-            st.divider()
+                st.divider()
 
             key = st.session_state['current_expr']
+            
             if st.session_state['edit_states'][key]:
                 input_col, kb_col, submit_col = st.columns([0.8, 0.1, 0.1])
                 
@@ -238,38 +251,39 @@ class symbook:
                     with col5:
                         if st.button(f'$\\LaTeX$', key=f'latex_{key}'):
                             latex_code = get_latex_code(st.session_state['expressions'][key], 
-                                                      st.session_state.get(f'result_{key}', None))
+                                                    st.session_state.get(f'result_{key}', None))
                     with col6:
                         if st.button('Plot', key=f'plot_{key}'):
-                            expr = get_js_expr(get_latex_code(st.session_state['expressions'][key], 
-                                             st.session_state.get(f'result_{key}', None))[1:-1])
-                            if 'plot_exprs' not in st.session_state:
-                                st.session_state['plot_exprs'] = []
-                            if expr not in st.session_state['plot_exprs']:
-                                st.session_state['plot_exprs'].append(expr)
-                            st.rerun()
+                                expr = get_js_expr(get_latex_code(st.session_state['expressions'][key], 
+                                                st.session_state.get(f'result_{key}', None))[1:-1])
+                                
+                                if expr not in st.session_state['plot_exprs']:
+                                    st.session_state['plot_exprs'].append(expr)
+                                    st.rerun()
 
-                    if latex_code is not None:
-                        st.code(latex_code, language='latex')
-                        
+                        if latex_code is not None:
+                            st.code(latex_code, language='latex')
+                            
                 except Exception as e:
                     st.write("Invalid expression")
                     st.session_state['edit_states'][key] = True
                     st.rerun()
 
-            if 'plot_exprs' in st.session_state and st.session_state['plot_exprs']:
-                st.divider()
-                show_graph(st.session_state['plot_exprs'])
+            if 'plot_exprs' in st.session_state:# and st.session_state['plot_exprs']:
+                with bottom:
+                    show_graph(st.session_state['plot_exprs'])
+                    components.html("<center><img src='data:image/png;base64,{}' alt='Title' width='150px'></center>".format(self.title_base64))
 
-        with expr_column[1]:
-            if st.button('➕ Add Expression'):
-                new_idx = str(len(st.session_state['expressions']))
-                st.session_state['expressions'][new_idx] = ''
-                st.session_state['edit_states'][new_idx] = True
-                st.session_state['current_expr'] = new_idx
-                st.session_state['temp_expr'] = ''
-                st.rerun()
+
+            with expr_column[2]:
+                if st.button('➕ Add Expression'):
+                    new_idx = str(len(st.session_state['expressions']))
+                    st.session_state['expressions'][new_idx] = ''
+                    st.session_state['edit_states'][new_idx] = True
+                    st.session_state['current_expr'] = new_idx
+                    st.session_state['temp_expr'] = ''
+                    st.rerun()
         
-        
-        
+        #with bottom:
+        #show_graph() 
 symbook()

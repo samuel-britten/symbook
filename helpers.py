@@ -64,8 +64,8 @@ def submit_expression():
             st.session_state['expressions'][key] = new_expr
             st.session_state['edit_states'][key] = False
             st.session_state['temp_expr'] = ''
-        except Exception as e:
-            st.error("Invalid expression")
+        except:
+            return
 
 def get_variables(expr):
     transformations = (standard_transformations + (implicit_multiplication_application, convert_xor))
@@ -122,7 +122,8 @@ def apply_operation(expr, operation, var=None, val=None):
                 return "Invalid substitution"
     return sym_expr
 
-def show_graph(exprs):
+
+def show_graph(exprs = None):
     try:
         primary_color = st.get_option("theme.primaryColor")
         background_color = st.get_option("theme.backgroundColor")
@@ -134,11 +135,15 @@ def show_graph(exprs):
         secondary_background_color = "#F0F2F6"
         text_color = "#262730"
     
-    js_functions = "[" + ",".join([f"'{expr}'" for expr in exprs]) + "]"
+    if exprs is not None:
+        js_functions = "[" + ",".join([f"'{expr}'" for expr in exprs]) + "]"
+    else:
+        js_functions = "[]"
     
     html_code = f"""
     <div style="background-color: {background_color}; padding-bottom: 2rem;">
-        <canvas id="graphCanvas" width="800" height="800" style="border:1px solid {text_color}; cursor: move;"></canvas>
+        <canvas id="graphCanvas" width="1640" height="850" style="border:1px solid {text_color}; cursor: move; top:10px;  position: relative;
+            "></canvas>
     </div>
 
     <script>
@@ -338,4 +343,4 @@ def show_graph(exprs):
         redraw();
     </script>
     """
-    components.html(html_code, height=800)
+    components.html(html_code, height=950, width = 1640)
